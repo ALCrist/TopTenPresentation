@@ -1,0 +1,108 @@
+---
+title       : Top Ten Occupations
+subtitle    : Find the best and worst occupations based on education level
+author      : Annette Crist
+job         : Coursera Developing Data Products Course
+framework   : dzslides        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight      # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []     # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+
+---
+
+
+## Top Ten Occupations
+
+```{r, echo=FALSE}
+
+## Initialization
+library(reshape2)
+library(ggplot2)
+library(RColorBrewer)
+emp_names <- c("Soc.Code","X2012","X2022","Delta","Delta.Percent",
+               "GrowthReplaceOpennings","MedianWage.X2012","Education")
+emp_data <- read.csv("~/EmpDataPres/Slides/Presentation/Employment Projections.csv", stringsAsFactors=FALSE,
+                     na.strings = "N/A")[,2:9]
+names(emp_data) <- emp_names
+emp_data <- emp_data[,c("Education","MedianWage.X2012")]
+
+emp_data <- emp_data[!is.na(emp_data$MedianWage.X2012),]
+emp_data$MedianWage.X2012 <- gsub(">=","",emp_data$MedianWage.X2012)
+emp_data$MedianWage.X2012 <- as.numeric(gsub(",","",emp_data$MedianWage.X2012))
+emp_data <- emp_data[order(emp_data$MedianWage.X2012,decreasing = TRUE, na.last = FALSE),]
+emp_data$Education <- as.factor(emp_data$Education)
+eval <- melt(emp_data, id ="Education", measure.vars = "MedianWage.X2012")
+eval <- dcast(eval, Education ~ variable, mean)
+eval <- eval[order(eval$MedianWage.X2012),]
+
+```
+
+---
+
+
+### Is Education Overrated?
+
+* Does school seem like a drag?
+* Ever wonder what job you could get if you quit now?
+* What if you like school but don't know what career path to choose.
+* How much schooling do I need to make top dollar?
+
+
+
+--- .class #id 
+
+
+### Don't Drop Out.
+
+```{r, echo=FALSE}
+## Lowest to Highest Earning Comparison
+x <- round((eval[eval$Education=="Doctoral or professional degree","MedianWage.X2012"] -
+        eval[eval$Education=="Less than high school","MedianWage.X2012"])/
+    eval[eval$Education=="Doctoral or professional degree","MedianWage.X2012"],2)
+##  Lowest to Bachelor's Degree
+x2 <- round((eval[eval$Education=="Bachelor's degree","MedianWage.X2012"] -
+           eval[eval$Education=="Less than high school","MedianWage.X2012"])/
+    eval[eval$Education=="Bachelor's degree","MedianWage.X2012"],2)
+##  High School diploma to Highest Earning Comparison
+
+```
+
+*  According to the 2012 Labor and Statistics Data there is a `r paste(x * 100)`% difference in wages between high school drop-outs and those with doctoral or professional degrees. 
+* Even getting a bachelor's degree improves your earnings by `r paste(x2 *100)`%.  
+
+--- .class #id 
+
+
+### Education Does Pay Off!
+
+```{r Figure 1,echo=FALSE,cache.lazy=TRUE, warning=FALSE, message=FALSE,fig.height=5,fig.width=9}
+
+g <- ggplot(eval,aes(x = reorder(Education, MedianWage.X2012), y = MedianWage.X2012, fill = factor(Education))) +
+    geom_bar(stat = "identity") + 
+    scale_fill_brewer(palette = "Set3") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+    labs(x= "",y = "Mean Wage (Dollars)") +
+    guides(fill = FALSE) +
+    labs(title= "Average Wages by Education Level")
+
+print(g)
+
+
+```
+
+
+
+
+
+--- .class #id 
+
+
+### Check Out the Top Ten Occupations Website for More Information.
+
+### [Top Ten] (https://alc11.shinyapps.io/EmpDataApp)
+
+
+
+
